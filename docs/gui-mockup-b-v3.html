@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DtdpGIS 模块工作台 V3</title>
+  <style>
+    :root{--bg:#f5f7fa;--card:#fff;--line:#e3e8ef;--text:#263142;--muted:#7b8797;--primary:#3d7fd8;--primary-soft:#edf4fd;--pass:#2f9e63;--warn:#d98a2b;--fail:#cf5252;--r:7px;--shadow:0 1px 2px rgba(23,43,77,.04),0 4px 16px rgba(23,43,77,.05)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Inter","Source Han Sans SC","Microsoft YaHei",sans-serif;height:100vh;overflow:hidden}
+    .app{display:grid;grid-template-rows:54px 46px 1fr 30px;height:100vh}
+    .top{display:flex;align-items:center;gap:18px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}.brand{font-weight:600;font-size:16px}.brand span{color:var(--primary)}.muted{color:var(--muted);font-size:13px}
+    .crumb{display:flex;align-items:center;gap:8px;padding:0 20px;background:#fff;border-bottom:1px solid var(--line);font-size:13px}.crumb .current{color:var(--primary);font-weight:500}
+    .main{display:grid;grid-template-columns:72px minmax(0,1fr) 310px;grid-template-rows:minmax(0,1fr) 185px;gap:14px;padding:14px;min-height:0}
+    .rail{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:5px;grid-row:1/3}
+    .rail div{width:52px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted)}.rail div.active{background:var(--primary-soft);color:var(--primary)}.rail svg{width:19px;height:19px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-height:0;overflow:auto}
+    .head{padding:13px 15px;border-bottom:1px solid var(--line);font-weight:600}
+    .params{padding:16px}.params h3{margin:0 0 14px;font-size:14px;font-weight:600}
+    .tools{display:flex;gap:8px;margin-bottom:14px}.chip{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 11px;color:var(--muted);font-size:13px}.chip.active{background:var(--primary-soft);border-color:#cfe0f7;color:var(--primary)}
+    .field{margin-bottom:13px}.field label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px}
+    .control{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;background:#fbfcfe;padding:8px 10px}.control input,.control select{flex:1;border:0;outline:0;background:transparent;color:var(--text);font:inherit}.control button{border:0;background:var(--primary-soft);color:var(--primary);border-radius:5px;padding:4px 9px}
+    .actions{display:flex;gap:8px;margin-top:14px}.btn{border:1px solid var(--line);background:#fff;color:#465468;border-radius:6px;padding:7px 13px}.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .queue{padding:0}.task{display:grid;grid-template-columns:18px 1fr 48px;gap:8px;align-items:center;padding:11px 15px;border-bottom:1px solid var(--line);font-size:13px}.task .s{width:9px;height:9px;border-radius:50%}.s.run{background:var(--primary)}.s.pass{background:var(--pass)}.s.warn{background:var(--warn)}.s.fail{background:var(--fail)}.task .meta{color:var(--muted);font-size:12px}
+    .tree{padding:8px}.tree div{padding:7px 10px;color:var(--muted);font-size:13px}.tree .sel{background:var(--primary-soft);color:var(--primary)}
+    .report{padding:15px}.metrics{display:flex;gap:12px;margin-bottom:12px}.metric{flex:1;background:#f8fafd;border:1px solid var(--line);border-radius:var(--r);padding:11px}.metric b{display:block;font-size:21px}.metric.pass b{color:var(--pass)}.metric.warn b{color:var(--warn)}.metric.fail b{color:var(--fail)}.metric span{color:var(--muted);font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500}
+    .status{display:flex;align-items:center;gap:18px;padding:0 20px;background:#fff;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top"><div class="brand">Dtdp<span>GIS</span></div><span class="muted">北京园区数字孪生</span><span class="muted">项目</span><span class="muted">运行</span><span class="muted">帮助</span></div>
+    <div class="crumb"><span>数据接入与质检</span><span>/</span><span class="current">数据资产扫描</span><span>/</span><span class="muted">run_006</span></div>
+    <div class="main">
+      <aside class="rail">
+        <div class="active" title="数据接入与质检"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div title="坐标与基准"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg></div>
+        <div title="矢量清洗与拓扑"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19L10 5l4 8 2-5 4 11z"/></svg></div>
+        <div title="栅格与地形"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 20V9l7-5 7 5v11H5z"/></svg></div>
+        <div title="点云与倾斜摄影"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18"/><path d="M7 8l3-3 4 4 3-3 1 2-5 7-6-7z"/></svg></div>
+        <div title="矢量融合与三维化"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4zM9 18v3M15 18v3M7 6V3h10v3"/></svg></div>
+        <div title="AI 辅助插件"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18M7 7l5 5 5-5"/></svg></div>
+      </aside>
+      <section class="card params"><div class="tools"><span class="chip active">数据资产扫描</span><span class="chip">入口级数据质检</span><span class="chip">点云轻量统计</span></div><h3>参数面板 · 数据资产扫描</h3><div class="field"><label>输入数据目录</label><div class="control"><input value="D:\Projects\北京园区\inputs"><button>浏览</button></div></div><div class="field"><label>哈希算法</label><div class="control"><select><option>sha256</option><option>none</option></select></div></div><div class="field"><label>来源档案</label><div class="control"><input value="profiles/source_manifest.yaml"><button>浏览</button></div></div><div class="actions"><button class="btn">干跑</button><button class="btn primary">执行</button><button class="btn">取消</button></div></section>
+      <aside class="card queue"><div class="head">任务队列</div><div class="task"><span class="s run"></span><div><div>数据资产扫描</div><div class="meta">run_006 · 128 个文件</div></div><div>72%</div></div><div class="task"><span class="s pass"></span><div><div>入口级数据质检</div><div class="meta">96 个资产</div></div><div>完成</div></div><div class="task"><span class="s warn"></span><div><div>点云轻量统计</div><div class="meta">2 个警告</div></div><div>完成</div></div></aside>
+      <section class="card report" style="grid-column:2/4"><div class="head">质检结果</div><div class="metrics"><div class="metric pass"><b>88</b><span>通过</span></div><div class="metric warn"><b>6</b><span>警告</span></div><div class="metric fail"><b>2</b><span>失败</span></div></div><table><tr><th>资产</th><th>检查项</th><th>结论</th></tr><tr><td>园区_A.las</td><td>点云统计</td><td>通过</td></tr><tr><td>建筑_C.las</td><td>CRS 声明</td><td>警告</td></tr><tr><td>空_D.las</td><td>点数检查</td><td>失败</td></tr></table></section>
+    </div>
+    <div class="status"><span><b>run_006</b></span><span>当前模块：数据接入与质检</span><span>项目：D:\Projects\北京园区</span><span>进度 72%</span></div>
+  </div>
+</body>
+</html>

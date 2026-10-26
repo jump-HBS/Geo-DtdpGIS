@@ -1,0 +1,73 @@
+# -*- coding: utf-8 -*-
+"""查看 LAZ/LAS 点云文件的坐标系信息（PDAL）"""
+
+import json
+import pdal
+
+LAZ_PATH = r"C:\Users\jump\Desktop\DtdoGIS试验\数据源\点云数据\点云_1.laz"
+
+
+def find_srs(obj, found):
+    """在 PDAL 返回的嵌套元数据里递归查找 srs / spatialreference 字段。"""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key.lower() in ("srs", "spatialreference") and isinstance(value, dict):
+                found.append(value)
+            else:
+                find_srs(value, found)
+    elif isinstance(obj, list):
+        for item in obj:
+            find_srs(item, found)
+
+
+def main():
+    pipeline_json = json.dumps([{"type": "readers.las", "filename": LAZ_PATH}])
+    pipeline = pdal.Pipeline(pipeline_json)
+
+    # quickinfo 只读头部元数据，不加载全部点，速度快
+    try:
+        info = pipeline.quickinfo
+    except Exception:
+        # 部分旧版本没有 quickinfo，退回到 execute + metadata
+        pipeline.execute()
+        info = json.loads(pipeline.metadata)
+
+    found = []
+    find_srs(info, found)
+
+    if not found:
+        print("❌ 未找到坐标系信息：该文件可能没有写入 CRS，或为局部坐标。")
+        return
+
+    # 通常只有一个，去重后打印
+    seen = set()
+    for srs in found:
+        # srs 里常见键：wkt / compoundwkt / proj4 / epsg / horizontal / vertical
+        epsg = srs.get("epsg") or srs.get("horizontal")
+        wkt = srs.get("wkt") or srs.get("compoundwkt")
+        proj4 = srs.get("proj4")
+        key = (str(epsg), str(proj4), str(wkt))
+        if key in seen:
+            continue
+        seen.add(key)
+
+        print("=" * 60)
+        print(f"EPSG     : {epsg if epsg else '（未给出）'}")
+        print(f"PROJ4    : {proj4 if proj4 else '（未给出）'}")
+        if wkt:
+            print("WKT      :")
+            print(wkt)
+        else:
+            print("WKT      : （未给出）")
+
+        # 简单判断是地理坐标还是投影坐标
+        if proj4:
+            if "+proj=longlat" in proj4:
+                print("类型判断 : 地理坐标系（单位：度）")
+            elif "+proj=" in proj4:
+                print("类型判断 : 投影坐标系（单位通常为米）")
+        print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
