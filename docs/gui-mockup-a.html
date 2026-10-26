@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DtdpGIS 布局 A · 流水线工作台</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#151b23;--panel2:#1b232e;--border:#2b3646;--text:#d7e0ea;--muted:#8b98a9;--accent:#35c4d0;--pass:#38c172;--warn:#e7a83e;--fail:#e05b5b;--r:6px}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI","Microsoft YaHei",sans-serif;height:100vh;overflow:hidden}
+    .app{display:grid;grid-template-rows:42px 1fr 28px;height:100vh}
+    .menu{display:flex;align-items:center;gap:22px;padding:0 14px;background:#10161e;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px}
+    .brand{color:var(--text);font-weight:600;margin-right:10px}.menu b{color:var(--text)}
+    .main{display:grid;grid-template-columns:220px minmax(0,1fr) 320px;grid-template-rows:96px minmax(0,1fr) 210px;grid-template-areas:"project pipeline queue" "project params queue" "project report queue";gap:8px;padding:8px;min-height:0}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);min-height:0;overflow:hidden;display:flex;flex-direction:column}
+    .pt{padding:9px 11px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border)}
+    .project{grid-area:project}.params{grid-area:params}.queue{grid-area:queue}.report{grid-area:report}.pipeline{grid-area:pipeline;padding:12px;overflow:auto}
+    .tree{padding:7px 0 10px;overflow:auto;flex:1}.tree div{padding:7px 11px;color:var(--muted);font-size:13px}.tree .grp{color:var(--text);font-weight:600}
+    .steps{display:flex;gap:7px;align-items:stretch;height:58px}
+    .step{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:8px 9px;color:var(--muted);font-size:12px}
+    .step b{display:block;color:var(--text);font-size:13px}.step.active{border-color:var(--accent);color:var(--text)}.step.done b{color:var(--pass)}.step.warn{border-color:var(--warn)}
+    .param-row{margin:0 12px 12px}.param-label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px}
+    .field{display:flex;gap:8px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:8px 9px}.field input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font:inherit}
+    .field button{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:4px 8px}
+    .actions{display:flex;gap:8px;margin:14px 12px 0}.btn{border:1px solid var(--border);background:#1b2430;color:var(--text);border-radius:var(--r);padding:8px 13px}.btn.primary{background:#0f7d88;border-color:#1396a2}
+    .queue{padding:8px 0 0}.task{display:grid;grid-template-columns:18px 1fr 54px;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border);font-size:12px;align-items:center}.task .s{width:9px;height:9px;border-radius:50%}.s.run{background:var(--accent)}.s.pass{background:var(--pass)}.s.warn{background:var(--warn)}.s.fail{background:var(--fail)}.task .meta{color:var(--muted)}
+    .log{margin:10px;padding:10px;background:#0f141b;border:1px solid var(--border);border-radius:var(--r);color:#9fb1c4;font-family:Consolas,monospace;font-size:11px;overflow:auto;flex:1}
+    .tabs{display:flex;border-bottom:1px solid var(--border)}.tabs button{background:transparent;border:0;color:var(--muted);padding:8px 13px;border-bottom:2px solid transparent}.tabs button.active{color:var(--text);border-bottom-color:var(--accent)}
+    .report-body{padding:12px;overflow:auto;flex:1}.metrics{display:flex;gap:10px;margin-bottom:12px}.metric{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:10px}.metric b{display:block;font-size:21px}.metric.pass b{color:var(--pass)}.metric.warn b{color:var(--warn)}.metric.fail b{color:var(--fail)}.metric span{color:var(--muted);font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}th{color:var(--muted);font-weight:500}
+    .statusbar{display:flex;align-items:center;gap:18px;padding:0 12px;background:#10161e;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="menu"><span class="brand">DtdpGIS</span><span>项目</span><span>工具</span><span>运行</span><span>视图</span><span>帮助</span><b>北京园区数字孪生</b></div>
+    <div class="main">
+      <aside class="panel project">
+        <div class="pt">项目工作区</div>
+        <div class="tree"><div class="grp">项目</div><div>inputs</div><div>outputs</div><div>quarantine</div><div>profiles</div><div class="grp">资产</div><div>点云 6</div><div>矢量 12</div><div>栅格 4</div><div>OSGB 2</div></div>
+      </aside>
+
+      <section class="panel pipeline">
+        <div class="steps">
+          <div class="step done"><b>M1</b>接入质检</div>
+          <div class="step done"><b>M2</b>坐标基准</div>
+          <div class="step active"><b>M3</b>矢量清洗</div>
+          <div class="step"><b>M4</b>栅格地形</div>
+          <div class="step"><b>M5</b>点云倾斜</div>
+          <div class="step"><b>M6</b>融合三维</div>
+          <div class="step warn"><b>M7</b>AI 插件</div>
+        </div>
+      </section>
+
+      <section class="panel params">
+        <div class="pt">参数面板 · topology.batch_repair</div>
+        <div class="param-row"><label class="param-label">输入矢量目录</label><div class="field"><input value="vector_normalized"><button>浏览</button></div></div>
+        <div class="param-row"><label class="param-label">狭长面面积阈值</label><div class="field"><input value="1.0 m²"></div></div>
+        <div class="param-row"><label class="param-label">处理动作</label><div class="field"><select><option>修复并标记</option><option>仅标记</option></select></div></div>
+        <div class="actions"><button class="btn">干跑</button><button class="btn primary">执行</button><button class="btn">取消</button></div>
+      </section>
+
+      <section class="panel queue">
+        <div class="pt">任务队列</div>
+        <div class="task"><span class="s run"></span><div><div>topology.batch_repair</div><div class="meta">run_006 · 12 个矢量资产</div></div><div>72%</div></div>
+        <div class="task"><span class="s pass"></span><div><div>attribute.batch_normalize</div><div class="meta">run_006 · 字段映射 18</div></div><div>完成</div></div>
+        <div class="task"><span class="s warn"></span><div><div>pointcloud.batch_thin</div><div class="meta">run_006 · 保留比例 0.3</div></div><div>完成</div></div>
+        <div class="log">[14:32:01] 工具链：M1 → M2 → M3<br>[14:32:02] 当前步骤：M3 矢量清洗</div>
+      </section>
+
+      <section class="panel report">
+        <div class="tabs"><button class="active">汇总</button><button>明细</button><button>HTML 报告</button><button>数据流</button></div>
+        <div class="report-body">
+          <div class="metrics"><div class="metric pass"><b>88</b><span>通过</span></div><div class="metric warn"><b>6</b><span>警告</span></div><div class="metric fail"><b>2</b><span>失败</span></div></div>
+          <table><tr><th>模块</th><th>输入</th><th>输出</th><th>状态</th></tr><tr><td>M1</td><td>inputs</td><td>assets.json</td><td>完成</td></tr><tr><td>M2</td><td>assets.json</td><td>vector/ raster/</td><td>完成</td></tr><tr><td>M3</td><td>vector_normalized</td><td>vector_repaired</td><td>运行中</td></tr></table>
+        </div>
+      </section>
+    </div>
+    <div class="statusbar"><span><b>run_006</b></span><span>当前模块：M3</span><span>项目：D:\Projects\51World_北京园区</span><span>进度 72%</span></div>
+  </div>
+</body>
+</html>

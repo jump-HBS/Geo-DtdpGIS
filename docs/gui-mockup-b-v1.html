@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DtdpGIS 模块工作台 V1</title>
+  <style>
+    :root{--bg:#f5f7fa;--card:#fff;--line:#e3e8ef;--text:#263142;--muted:#7b8797;--primary:#3d7fd8;--primary-soft:#edf4fd;--pass:#2f9e63;--warn:#d98a2b;--fail:#cf5252;--radius:7px;--shadow:0 1px 2px rgba(23,43,77,.04),0 4px 16px rgba(23,43,77,.05)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Inter","Source Han Sans SC","Microsoft YaHei",sans-serif;height:100vh;overflow:hidden}
+    .app{display:grid;grid-template-rows:54px 1fr 30px;height:100vh}
+    .top{display:flex;align-items:center;gap:18px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}
+    .brand{font-weight:600;font-size:16px;margin-right:8px}.brand span{color:var(--primary)}.top .muted{color:var(--muted);font-size:13px}
+    .main{display:grid;grid-template-columns:224px minmax(0,1fr);gap:14px;padding:14px;min-height:0}
+    .side{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto}
+    .side .head{padding:14px 14px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
+    .nav{display:flex;flex-direction:column;padding:6px}
+    .nav div{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:6px;color:#5f6c7e;font-size:13px}
+    .nav div.active{background:var(--primary-soft);color:var(--primary);font-weight:500}
+    .nav svg{width:17px;height:17px;flex:none;color:currentColor}
+    .content{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;min-height:0}
+    .workspace{display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;min-height:0}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-height:0;overflow:auto}
+    .pagebar{padding:14px 16px}.pagebar h1{margin:0;font-size:19px;font-weight:600}.pagebar p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .toolbar{display:flex;gap:8px;margin-top:12px}
+    .btn{border:1px solid var(--line);background:#fff;color:#465468;border-radius:6px;padding:7px 13px;font:inherit}.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .grid2{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;min-height:0}
+    .form-card{padding:16px}.form-card h3{margin:0 0 14px;font-size:14px;font-weight:600}
+    .field{margin-bottom:13px}.field label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px}
+    .control{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;background:#fbfcfe;padding:8px 10px}.control input,.control select{flex:1;border:0;outline:0;background:transparent;color:var(--text);font:inherit}.control button{border:0;background:var(--primary-soft);color:var(--primary);border-radius:5px;padding:4px 9px;font:inherit}
+    .queue-card{padding:0}.queue-head{padding:13px 15px;border-bottom:1px solid var(--line);font-weight:600}.task{display:grid;grid-template-columns:18px 1fr 48px;gap:8px;align-items:center;padding:11px 15px;border-bottom:1px solid var(--line);font-size:13px}.task .s{width:9px;height:9px;border-radius:50%}.s.run{background:var(--primary)}.s.pass{background:var(--pass)}.s.warn{background:var(--warn)}.s.fail{background:var(--fail)}.task .meta{color:var(--muted);font-size:12px}
+    .tree{padding:8px}.tree div{padding:7px 10px;color:var(--muted);font-size:13px}.tree .sel{background:var(--primary-soft);color:var(--primary)}
+    .results{grid-column:1 / -1;padding:15px}.results h3{margin:0 0 10px;font-size:14px;font-weight:600}.metrics{display:flex;gap:12px;margin-bottom:12px}.metric{flex:1;background:#f8fafd;border:1px solid var(--line);border-radius:var(--radius);padding:11px}.metric b{display:block;font-size:21px}.metric.pass b{color:var(--pass)}.metric.warn b{color:var(--warn)}.metric.fail b{color:var(--fail)}.metric span{color:var(--muted);font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500}
+    .status{display:flex;align-items:center;gap:18px;padding:0 20px;background:#fff;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top"><div class="brand">Dtdp<span>GIS</span></div><span class="muted">北京园区数字孪生</span><span class="muted">项目</span><span class="muted">运行</span><span class="muted">帮助</span></div>
+    <div class="main">
+      <aside class="side">
+        <div class="head">功能模块</div>
+        <nav class="nav">
+          <div class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>数据接入与质检</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>坐标与基准</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19L10 5l4 8 2-5 4 11z"/></svg>矢量清洗与拓扑</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 20V9l7-5 7 5v11H5z"/></svg>栅格与地形</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18"/><path d="M7 8l3-3 4 4 3-3 1 2-5 7-6-7z"/></svg>点云与倾斜摄影</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4zM9 18v3M15 18v3M7 6V3h10v3"/></svg>矢量融合与三维化</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18M7 7l5 5 5-5"/></svg>AI 辅助插件</div>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="workspace">
+          <div class="card pagebar"><h1>数据接入与质检</h1><p>扫描并核验多源空间数据，输出资产清单和质检结论。</p>
+            <div class="toolbar"><button class="btn">数据资产扫描</button><button class="btn primary">入口级数据质检</button><button class="btn">点云轻量统计</button></div>
+          </div>
+          <div class="grid2">
+            <div class="card form-card"><h3>参数面板 · 数据资产扫描</h3><div class="field"><label>输入数据目录</label><div class="control"><input value="D:\Projects\北京园区\inputs"><button>浏览</button></div></div><div class="field"><label>来源档案</label><div class="control"><input value="profiles/source_manifest.yaml"><button>浏览</button></div></div><div class="field"><label>哈希算法</label><div class="control"><select><option>sha256</option><option>none</option></select></div></div><div class="toolbar"><button class="btn">干跑</button><button class="btn primary">执行</button><button class="btn">取消</button></div></div>
+            <div class="card queue-card"><div class="queue-head">任务队列</div><div class="task"><span class="s run"></span><div><div>数据资产扫描</div><div class="meta">run_006 · 128 个文件</div></div><div>72%</div></div><div class="task"><span class="s pass"></span><div><div>入口级数据质检</div><div class="meta">96 个资产</div></div><div>完成</div></div><div class="task"><span class="s warn"></span><div><div>点云轻量统计</div><div class="meta">2 个警告</div></div><div>完成</div></div></div>
+          </div>
+          <div class="card results"><h3>质检结果</h3><div class="metrics"><div class="metric pass"><b>88</b><span>通过</span></div><div class="metric warn"><b>6</b><span>警告</span></div><div class="metric fail"><b>2</b><span>失败</span></div></div><table><tr><th>资产</th><th>检查项</th><th>结论</th></tr><tr><td>园区_A.las</td><td>点云统计</td><td>通过</td></tr><tr><td>建筑_C.las</td><td>CRS 声明</td><td>警告</td></tr><tr><td>空_D.las</td><td>点数检查</td><td>失败</td></tr></table></div>
+        </div>
+        <aside class="card tree"><div class="queue-head">项目资产</div><div class="tree"><div>inputs</div><div class="sel">01_点云</div><div>02_矢量</div><div>03_栅格</div><div>04_倾斜摄影</div><div>quarantine</div><div>outputs</div></div></aside>
+      </section>
+    </div>
+    <div class="status"><span><b>run_006</b></span><span>当前任务：数据资产扫描</span><span>项目：D:\Projects\北京园区</span><span>进度 72%</span></div>
+  </div>
+</body>
+</html>

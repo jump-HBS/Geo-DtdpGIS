@@ -1,0 +1,168 @@
+# =============================================================================
+# DtdpGIS 项目默认配置 (default profile)
+# 模块划分: m1=入库前扫描/质检  m2=CRS审计/投影  m3=拓扑/属性修复
+#          m4=栅格修补/镶嵌     m5=点云滤波/倾斜QC  m6=空间关系/建模
+#          m7=插件扩展
+# =============================================================================
+
+# —— m1: 数据入库前处理 ——
+m1:
+  inventory:                                          # 批量扫描配置 (对应 InventoryBatchScan 工具)
+    hash_algorithm: none                              # none / sha256，none 跳过哈希加速扫描
+    follow_symlinks: false                             # 是否跟随符号链接扫描
+    ignore_patterns:                                  # 忽略的文件/目录 (glob 模式)
+      - "**/__pycache__/**"
+      - "**/.git/**"
+  ingest_qc:                                          # 入库质检配置 (对应 IngestBatchQC 工具)
+    quarantine_on: [fail]                             # 哪些等级的资产需要隔离复制到 quarantine 目录
+    project_extent: null                              # 项目空间范围 [xmin, ymin, xmax, ymax]，null 则跳过范围检查
+    extent_buffer_m: 500                              # 范围检查的容差 buffer (米)
+    rules:                                            # —— 质检规则 (rule_id -> 配置) ——
+      # —— 通用规则 ——
+      common.readable: {level: fail}                                           # 规则1:上游扫描时是否报错(status!=error)
+      common.non_empty: {level: fail}                                           # 规则2:数据是否为空(要素数/尺寸/点数/tile数为0)
+      common.sidecar_complete: {level: fail}                                    # 规则3:Shapefile旁系文件(.shx/.dbf/.prj)是否齐全
+      common.crs_declared: {level: fail, allow_missing_for: [cad, unknown]}     # 规则4:是否声明CRS，cad/unknown类型允许缺失
+      common.bounds_within_project: {level: warn}                                # 规则5:空间范围是否在项目范围内(含buffer容差)
+      common.hash_match: {level: fail}                                          # 规则6:文件哈希是否与清单一致
+      common.duplicate: {level: warn}                                           # 规则7:是否存在疑似重复(同名+同大小)
+      # —— 按数据类别专属规则 ——
+      vector.feature_count_positive: {level: fail}                               # 矢量专属:要素数必须>0
+      raster.dimensions_positive: {level: fail}                                  # 栅格专属:宽/高/波段数必须>0
+      oblique.tile_count_positive: {level: fail}                                 # 倾斜专属:.osgb瓦片数必须>0
+      oblique.has_metadata: {level: warn}                                        # 倾斜专属:建议存在metadata.xml
+  pointcloud_stats:
+    sample_size: 200000                               # 点云统计采样点数
+    spacing_method: median                            # 间距估算方法 (median/mean)
+    z_unit: meter                                     # Z轴单位
+    sentinel_z: [-9999, -99999, 9999, 99999]         # 哨兵值(异常Z)，统计时忽略
+    project_z_range: null                             # 项目Z值合理范围 [min, max]，null 则不做范围裁剪
+
+# —— m2: CRS审计与投影处理 ——
+m2:
+  project_crs:
+    target_epsg: null                                 # 目标EPSG代码
+    target_central_meridian: null                     # 目标中央经线(度)
+    target_unit: metre                                # 目标单位
+    vertical_datum: null                              # 垂直基准
+  audit:
+    assumed_crs: {}                                   # 已假设CRS的资产 (asset_id -> crs)
+    checks:
+      CRS_MISSING: {level: fail}                       # CRS缺失
+      CRS_DECLARED_UNKNOWN: {level: fail}              # CRS已声明但无法解析
+      CRS_VALUE_INCONSISTENT: {level: fail}            # CRS值不一致(同层多个CRS)
+      CRS_ASSUMED_BY_CONFIG: {level: warn}             # 由配置文件强制指定了CRS
+      UNIT_MISMATCH: {level: warn}                     # 单位与项目CRS不匹配
+      CM_OUT_OF_PROJECT_BAND: {level: warn}            # 中央经线不在项目带号内
+      DATUM_TRANSFORM_REQUIRED: {level: warn}          # 需要基准面转换
+      VERTICAL_DATUM_UNDECLARED: {level: warn}         # 垂直基准未声明
+  vector_reproject:
+    output_format: GPKG                               # 输出格式
+    always_xy: true                                   # 是否强制 lon/lat 顺序
+    allow_ballpark: false                             # 是否允许粗近似转换(无参数的基准面)
+  raster_reproject:
+    resampling:                                       # 重采样方式 (按栅格类型区分)
+      DEM: bilinear                                   # 高程图:双线性
+      DOM: bilinear                                   # 正射影像:双线性
+      thematic: nearest                               # 专题图:最近邻
+    target_resolution: null                           # 目标分辨率(米)，null 保留原分辨率
+    grid_align: project                               # 栅格对齐方式 (project 与项目网格对齐)
+    compression: LZW                                  # 压缩方式
+    tiled: true                                       # 是否分块存储
+    nodata: null                                      # NoData 值覆盖，null 保留原值
+
+# —— m3: 拓扑修复与属性规范化 ——
+m3:
+  topology_repair:
+    snap_tolerance: 0.001                             # 顶点吸附容差
+    sliver_area_threshold: 1.0                        # 细长多边形面积阈值(平方米)
+    sliver_ratio_threshold: 10.0                       # 细长多边形长宽比阈值
+    rules:
+      SELF_INTERSECTION: {enabled: true, level: fail, action: repair}  # 自相交
+      INVALID_RING: {enabled: true, level: fail, action: repair}      # 无效环
+      REPEATED_VERTICES: {enabled: true, level: warn, action: repair}  # 重复顶点
+      SLIVER_POLYGON: {enabled: true, level: warn, action: mark}      # 细长面
+    output_format: GPKG                               # 修复后输出格式
+  attribute_normalize:
+    default_null_policy: empty_string                 # 默认空值策略 (empty_string/null/drop)
+    schemas:
+      by_asset_id: {}                                 # 按资产ID指定属性Schema
+      by_layer: {}                                    # 按图层名指定属性Schema
+
+# —— m4: 栅格修补与镶嵌 ——
+m4:
+  raster_types:                                       # 栅格类型分类
+    by_asset_id: {}                                   # 按资产ID指定
+    patterns: {}                                      # 按路径模式指定 (glob)
+  fill_holes:                                         # 空洞填充
+    dem: {max_hole_pixels: 100, max_dist: 20, smooth_iterations: 1}      # DEM:最大洞像素数/最大距离/平滑次数
+    dom: {max_hole_pixels: 50, max_dist: 10, smooth_iterations: 0}        # DOM
+    classification: {action: mark_only}                                  # 分类图:仅标记不填充
+    mark_filled_mask: true                                                   # 是否输出已填充掩膜
+  outlier_fix:                                        # 异常值修正
+    dem: {window_size: 5, method: median_residual, soft_threshold: 30, hard_threshold: 80, action: repair_hard_only} # 高程图:5像素窗口/中值残差/30米软阈值/80米硬阈值/仅修复硬异常值
+    dom: {window_size: 3, method: median_residual, soft_threshold: 20, hard_threshold: 50, action: repair_hard_only} # 正射影像:3像素窗口/中值残差/20米软阈值/50米硬阈值/仅修复硬异常值
+    classification: {action: mark_only}
+  mosaic:                                             # 镶嵌
+    dem: {overlap_strategy: mean, seam_tolerance_pixels: 2, seam_elevation_threshold: 0.5, resampling: bilinear} # 高程图:均值重叠/2像素容差/0.5米高差阈值/双线性重采样
+    dom: {overlap_strategy: mean, seam_tolerance_pixels: 2, color_balance: false, resampling: bilinear} # 正射影像:均值重叠/2像素容差/不进行颜色平衡/双线性重采样
+    classification: {overlap_strategy: first, resampling: nearest, seam_tolerance_pixels: 2} # 分类图:第一个重叠/最近邻重采样/2像素容差
+
+# —— m5: 点云滤波与倾斜摄影QC ——
+m5:
+  ground_filter:
+    csf:
+      resolution: 1.0                                 # CSF算法分辨率
+      threshold: 0.5                                  # CSF阈值
+      hdiff: 0.3                                      # CSF高差阈值
+      rigidness: 3                                    # CSF刚性参数
+      step: 0.65                                      # CSF步长
+      iterations: 500                                # CSF迭代次数
+      ground_class: 2                                 # 地面点分类代码(标准LAS)
+    dem: {resolution: 1.0, output_nodata: -9999}       # 点云生成DEM的分辨率/NoData
+    chunk_size: 5000000                               # 点云处理分块大小
+    ground_ratio_warn: 0.7                            # 地面点比例低于此值则warn
+  thin:                                               # 点云抽稀
+    mode: random                                      # 模式: random / voxel
+    random: {keep_ratio: 0.3, seed: 42}              # 随机抽稀:保留比例/随机种子
+    voxel: {cell_size: 0.1}                           # 体素抽稀:体素大小
+    preserve_ground: true                             # 是否保留全部地面点
+    ground_class: 2                                   # 地面点分类代码
+  oblique_qc:                                         # 倾斜摄影深度质检
+    float_object: {max_ground_clearance: 2.0, max_float_tile_ratio: 0.1}   # 悬空物体检测
+    texture_distortion: {sample_tiles: 20}                                 # 纹理失真抽样数
+    hole: {max_hole_area_ratio: 0.2}                                       # 最大空洞面积比
+    coord: {expected_crs: null, bounds_tolerance: 1000}                   # 坐标一致性检查
+    metadata: {require_srs: true}                                          # 是否要求元数据必须含SRS
+  oblique_convert:
+    enabled: false                                    # 是否启用OSGB->其他格式转换
+    command: ""                                       # 外部转换工具命令
+    args_template: "-i {input} -o {output}"           # 参数模板
+    timeout: 3600                                     # 超时(秒)
+
+# —— m6: 空间关系检查与建模 ——
+m6:
+  layer_roles: {}                                     # 图层角色定义 (asset_id -> role, 如 road/building)
+  spatial_relation:
+    tolerance: 0.01                                   # 空间关系判断容差
+    checks:
+      ROAD_WATER_OVERLAP: {enabled: true, level: warn}                   # 道路与水面重叠
+      WATER_WATER_OVERLAP: {enabled: true, level: warn, min_overlap_area: 1.0}  # 水面自重叠
+      BUILDING_OUTSIDE_BOUNDARY: {enabled: true, level: warn}            # 建筑超出行政边界
+      POI_OUTSIDE_ADMIN: {enabled: true, level: fail}                   # POI超出行政边界
+      POI_ADMIN_MISMATCH: {enabled: true, level: warn}                   # POI所属行政区与坐标不一致
+      WATER_OUTSIDE_ADMIN: {enabled: true, level: warn}                  # 水面超出行政边界
+    containment_rules: []                             # 自定义包含关系规则
+    output_issue_geometry: true                       # 是否输出问题几何
+  building_extrude:                                   # 建筑三维拉伸建模
+    building_role: building                           # 识别建筑的图层角色
+    floors_field: floors                              # 楼层数字段名
+    height_field: height                              # 高度字段名
+    floor_height: 3.0                                 # 默认楼层高度(米)
+    max_floors: 100                                   # 最大允许楼层数(超过视为异常)
+    suspicious_action: mark_only                      # 异常楼层处理 (mark_only / clamp)
+    output: {gpkg: true, geojson: true, geojson_geometry: 2d_footprint}  # 输出格式/几何类型
+
+# —— m7: 插件扩展 ——
+m7:
+  plugins_dir: null                                   # 插件目录路径，null 禁用插件加载

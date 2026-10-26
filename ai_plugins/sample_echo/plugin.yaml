@@ -1,0 +1,24 @@
+id: sample_echo
+name: Sample Echo Plugin
+version: 0.1.0
+description: M7 lifecycle sample plugin.
+backend_type: local_process
+provider: custom
+python_executable: venv/Scripts/python.exe
+entry_command:
+  - runner.py
+  - --output
+  - "{output_dir}"
+input_contract:
+  category: any
+  formats: []
+output_contract:
+  files:
+    - result.json
+    - summary.csv
+timeout_seconds: 30
+health_check:
+  type: command
+  command:
+    - runner.py
+    - --health

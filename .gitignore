@@ -1,0 +1,10 @@
+Python/
+ai_plugins/sample_echo/venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+outputs/
+quarantine/
+reports/
+*.log
+.DS_Store

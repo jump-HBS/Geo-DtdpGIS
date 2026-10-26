@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DtdpGIS 界面原型</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #151b23;
+      --panel-2: #1b232e;
+      --border: #2b3646;
+      --text: #d7e0ea;
+      --muted: #8b98a9;
+      --accent: #35c4d0;
+      --accent-dim: #1e3a40;
+      --pass: #38c172;
+      --warn: #e7a83e;
+      --fail: #e05b5b;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 "Segoe UI", "Microsoft YaHei", sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr) 28px;
+      height: 100vh;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 0 14px;
+      background: #10161e;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .menu .brand { color: var(--text); font-weight: 600; margin-right: 12px; }
+    .menu span:hover { color: var(--text); cursor: default; }
+
+    .main {
+      display: grid;
+      grid-template-columns: 240px minmax(360px, 1fr) 330px;
+      grid-template-rows: minmax(0, 1fr) 220px;
+      gap: 8px;
+      padding: 8px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-title {
+      padding: 9px 11px;
+      font-size: 12px;
+      letter-spacing: 0;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+
+    .sidebar {
+      grid-row: 1 / 3;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 8px;
+    }
+    .sidebar .panel { min-height: 0; }
+    .tree { padding: 7px 0 10px; overflow: auto; flex: 1; }
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .tree-row.group { font-weight: 600; color: var(--text); }
+    .tree-row.tool { padding-left: 26px; cursor: default; }
+    .tree-row.tool.active {
+      color: #eafcff;
+      background: var(--accent-dim);
+      border-left: 2px solid var(--accent);
+      padding-left: 24px;
+    }
+    .tree-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+    .params {
+      grid-row: 1;
+      padding: 12px;
+      overflow: auto;
+    }
+    .param-row { margin-bottom: 13px; }
+    .param-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 9px;
+    }
+    .field input[type="text"], .field select {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      font: inherit;
+    }
+    .field button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: default;
+    }
+    .checks { display: flex; gap: 16px; align-items: center; }
+    .checks label { color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 8px; margin-top: 14px; }
+    .btn {
+      border: 1px solid var(--border);
+      background: #1b2430;
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 8px 13px;
+      cursor: default;
+    }
+    .btn.primary { background: #0f7d88; border-color: #1396a2; color: #f4feff; }
+    .btn.ghost { color: var(--muted); }
+
+    .queue { grid-row: 1; padding: 8px 0 0; }
+    .task {
+      display: grid;
+      grid-template-columns: 22px 1fr 58px;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 11px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .task .status { width: 10px; height: 10px; border-radius: 50%; }
+    .status.pass { background: var(--pass); }
+    .status.run { background: var(--accent); }
+    .status.warn { background: var(--warn); }
+    .status.fail { background: var(--fail); }
+    .task .meta { color: var(--muted); }
+    .progress { height: 4px; background: #222c3a; border-radius: 3px; overflow: hidden; }
+    .progress i { display: block; height: 100%; width: 72%; background: var(--accent); }
+    .log {
+      margin: 10px;
+      padding: 10px;
+      background: #0f141b;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: #9fb1c4;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .report { grid-column: 2 / 4; padding: 0; }
+    .report-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .report-tabs button {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      padding: 8px 13px;
+      cursor: default;
+      border-bottom: 2px solid transparent;
+    }
+    .report-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+    .report-body { padding: 12px; overflow: auto; flex: 1; }
+    .metric-grid { display: flex; gap: 10px; margin-bottom: 12px; }
+    .metric {
+      flex: 1;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+    .metric b { display: block; font-size: 22px; }
+    .metric.pass b { color: var(--pass); }
+    .metric.warn b { color: var(--warn); }
+    .metric.fail b { color: var(--fail); }
+    .metric span { color: var(--muted); font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 12px;
+      background: #10161e;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .statusbar b { color: var(--text); font-weight: 500; }
+
+    @media (max-width: 980px) {
+      .main { grid-template-columns: 190px minmax(300px, 1fr); }
+      .queue { grid-column: 2; grid-row: 1; }
+      .report { grid-column: 1 / 3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="menu">
+      <span class="brand">DtdpGIS</span>
+      <span>项目</span><span>工具</span><span>运行</span><span>视图</span><span>帮助</span>
+    </div>
+
+    <div class="main">
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-title">项目工作区</div>
+          <div class="tree">
+            <div class="tree-row group">51World_北京园区</div>
+            <div class="tree-row tool">inputs</div>
+            <div class="tree-row tool">outputs</div>
+            <div class="tree-row tool">quarantine</div>
+            <div class="tree-row tool">profiles</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">处理工具</div>
+          <div class="tree">
+            <div class="tree-row group">M1 数据接入与质检</div>
+            <div class="tree-row tool active">inventory.batch_scan</div>
+            <div class="tree-row tool">ingest.batch_qc</div>
+            <div class="tree-row tool">pointcloud.batch_stats</div>
+            <div class="tree-row group">M2 坐标与基准</div>
+            <div class="tree-row tool">crs.audit</div>
+            <div class="tree-row tool">crs.batch_reproject_vector</div>
+            <div class="tree-row tool">crs.batch_reproject_raster</div>
+            <div class="tree-row group">M3 矢量清洗与拓扑</div>
+            <div class="tree-row tool">topology.batch_repair</div>
+            <div class="tree-row tool">attribute.batch_normalize</div>
+            <div class="tree-row group">M4 栅格与地形</div>
+            <div class="tree-row tool">raster.batch_fill_holes</div>
+            <div class="tree-row tool">raster.batch_outlier_fix</div>
+            <div class="tree-row tool">raster.batch_mosaic</div>
+            <div class="tree-row group">M5 点云与倾斜摄影</div>
+            <div class="tree-row tool">pointcloud.batch_ground_filter</div>
+            <div class="tree-row tool">pointcloud.batch_thin</div>
+            <div class="tree-row tool">oblique.batch_quality_check</div>
+            <div class="tree-row group">M6 矢量融合与三维化</div>
+            <div class="tree-row tool">vector.batch_spatial_relation</div>
+            <div class="tree-row tool">building.batch_extrude</div>
+            <div class="tree-row group">M7 AI 辅助插件</div>
+            <div class="tree-row tool">sample_echo</div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="panel params">
+        <div class="panel-title">参数面板 · inventory.batch_scan</div>
+        <div class="param-row">
+          <label class="param-label">输入数据目录</label>
+          <div class="field">
+            <input type="text" value="D:\Projects\51World_北京园区\inputs">
+            <button>浏览</button>
+          </div>
+        </div>
+        <div class="param-row">
+          <label class="param-label">来源档案</label>
+          <div class="field">
+            <input type="text" value="profiles/source_manifest.yaml">
+            <button>浏览</button>
+          </div>
+        </div>
+        <div class="param-row">
+          <label class="param-label">哈希算法</label>
+          <div class="field">
+            <select><option>sha256</option><option>none</option></select>
+          </div>
+        </div>
+        <div class="param-row checks">
+          <label><input type="checkbox" checked> 跟随符号链接</label>
+          <label><input type="checkbox"> 生成 HTML 报告</label>
+        </div>
+        <div class="actions">
+          <button class="btn ghost">干跑</button>
+          <button class="btn primary">执行</button>
+          <button class="btn">取消</button>
+        </div>
+      </section>
+
+      <section class="panel queue">
+        <div class="panel-title">任务队列</div>
+        <div class="task">
+          <span class="status run"></span>
+          <div><div>inventory.batch_scan</div><div class="meta">run_006 · 扫描 128 个文件</div></div>
+          <div>72%</div>
+        </div>
+        <div class="task">
+          <span class="status pass"></span>
+          <div><div>ingest.batch_qc</div><div class="meta">run_006 · 96 个资产</div></div>
+          <div>完成</div>
+        </div>
+        <div class="task">
+          <span class="status warn"></span>
+          <div><div>pointcloud.batch_stats</div><div class="meta">run_006 · 2 warn</div></div>
+          <div>完成</div>
+        </div>
+        <div class="progress"><i></i></div>
+        <div class="log">[14:32:01] inventory.batch_scan dry-run: 128 files<br>[14:32:02] inventory.batch_scan started<br>[14:32:04] 96 assets recognized</div>
+      </section>
+
+      <section class="panel report">
+        <div class="report-tabs">
+          <button class="active">汇总</button>
+          <button>明细</button>
+          <button>HTML 报告</button>
+        </div>
+        <div class="report-body">
+          <div class="metric-grid">
+            <div class="metric pass"><b>88</b><span>通过</span></div>
+            <div class="metric warn"><b>6</b><span>警告</span></div>
+            <div class="metric fail"><b>2</b><span>失败</span></div>
+          </div>
+          <table>
+            <tr><th>模块</th><th>资产</th><th>检查项</th><th>结论</th></tr>
+            <tr><td>M1</td><td>96</td><td>可读性、CRS、范围</td><td>通过</td></tr>
+            <tr><td>M2</td><td>9</td><td>CRS、中央经线、基准</td><td>警告 2</td></tr>
+            <tr><td>M5</td><td>6</td><td>点云统计、OSGB 结构</td><td>失败 2</td></tr>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="statusbar">
+      <span><b>run_006</b></span>
+      <span>当前任务：inventory.batch_scan</span>
+      <span>项目：D:\Projects\51World_北京园区_数字孪生_20261017</span>
+      <span>进度：72%</span>
+    </div>
+  </div>
+</body>
+</html>
